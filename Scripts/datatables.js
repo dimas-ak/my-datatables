@@ -291,6 +291,8 @@
 
                             ini.removeClass("--loading");
 
+                            var all_check   = container.find('input[type="checkbox"]');
+
                             if(ini.hasClass("--action-column"))
                             {
                                 var change  = tb.setChangeDataTD(indexTR, indexButton, data),
@@ -351,6 +353,8 @@
                                         }
                                     }
                                 }
+                                
+                                all_check.prop("checked", false);
                             }
                             
                         },
@@ -900,7 +904,8 @@
                     clsDisableChange = typeof dataChange !== 'undefined' && typeof msg !== 'undefined' ? " --dis-change" : "",
                     //action = action.act ? ' oncick="' + action.act + '"' : "",
                     text        = action.text ? action.text : action.cls.toString().toUpperCase(),
-                    url         = action.url;
+                    url         = action.url.substr(action.url.length - 1) === "/" || action.url.substr(action.url.length - 1) === "?" ? action.url : action.url + "/";
+                    console.log();
                 if(typeof action.params !== 'undefined')
                 {
                     for(var p = 0; p < action.params.length; p++)
@@ -1372,10 +1377,11 @@
                 for(var i = 0; i < action_all.length; i++)
                 {
                     var action = action_all[i],
+                        url    = action.url.substr(action.url.length - 1) === "/" || action.url.substr(action.url.length - 1) === "?" ? action.url : action.url + "/",
                         cls    = "t-" + (typeof action.cls !== 'undefined' ? action.cls : "default"),
                         clsChange= typeof action.changeData !== 'undefined' || typeof action.isRemove !== 'undefined' ? " --change-data --dis-change" : "",
                         clsMsg = typeof action.msg !== 'undefined' ? " --data-msg" : "";
-                    html += '<a class="' + cls + clsMsg + clsChange + ' --action-row" href="' + action.url + '" set-data="' + i + '">' + action.text + '</a>'
+                    html += '<a class="' + cls + clsMsg + clsChange + ' --action-row" href="' + url + '" set-data="' + i + '">' + action.text + '</a>'
                 }
             }
         return html;
