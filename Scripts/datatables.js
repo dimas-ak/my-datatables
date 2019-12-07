@@ -70,8 +70,13 @@
                 success: function (data) 
                 {
                     //var json = JSON.parse(data);
-                    if(data.length === 0) {ini.html("Data are empty.");}
-                    else 
+                    if(data.length === 0)
+                    {
+                        var empty = '<tr> <td colspan="' + tb.count_thead + '"> Data are empty </td> </tr>';
+                        tb.getAllData(data);
+                        tbody.html(empty); 
+                    }
+                    else
                     {
                         dataJSON[number] = data;
                         tb.getAllData(dataJSON[number]);
@@ -433,7 +438,7 @@
                 var ini   = $(this),
                     val   = ini.val(),
                     index = ini.attr("set-data");
-                console.log("ini change");
+                    
                 var data  = tb.onInput(index, val, true);
                 tbody.html(data[0]);
                 pagination.html(data[1]);
@@ -473,6 +478,7 @@
         this.dt_order_by    = [0, 'asc'];
         this.theadSearch    = null;
         this.action_checkable= {};
+        this.count_thead    = 1;
         this.check_data     = {};
         this.time_load      = new Date().getTime();
         this.dt_thead       = null;
@@ -573,11 +579,12 @@
     {
         var arr = [10, 25, 50, 100, 250, 500],
             elem = '<span>Number of rows </span><select class="table-entry">';
-            for(var i = 0; i < arr.length; i++)
-            {
-                elem += '<option val="' + arr[i] + '">' + arr[i] + '</option>';
-            }
-            elem += '</select>';
+        for(var i = 0; i < arr.length; i++)
+        {
+            elem += '<option val="' + arr[i] + '">' + arr[i] + '</option>';
+        }
+        elem += '</select>';
+    
         return elem;
     };
 
@@ -604,6 +611,7 @@
         {
             if(!this.isHidden(i))
             {
+                this.count_thead += 1;
                 attr = (i === order_by[0]) ? (order_by[1].toString().toLowerCase() === "desc") ? "desc" : "asc" : 'asc';
                 elem += "<th set-data='" + (i + 1)  + "' sort=\"" + attr + "\" class=\"" + attr+ "\"><span>" + thead[i] + "</span></th>";
             }
@@ -671,6 +679,7 @@
             }
             if(this.action !== null)
             {
+                this.count_thead += 1;
                 elem += '<th></th>';
             }
             elem += '</tr>';
@@ -839,6 +848,7 @@
 
     table.prototype.setTD     = function (dt_ajax, i)
     {
+        if(this.dt_all === null) return false;
         var elem       = "",
             array_info = this.array_info;
         if(i < dt_ajax.length && i >= 0) 
@@ -905,7 +915,7 @@
                     //action = action.act ? ' oncick="' + action.act + '"' : "",
                     text        = action.text ? action.text : action.cls.toString().toUpperCase(),
                     url         = action.url.substr(action.url.length - 1) === "/" || action.url.substr(action.url.length - 1) === "?" ? action.url : action.url + "/";
-                    console.log();
+                    //console.log();
                 if(typeof action.params !== 'undefined')
                 {
                     for(var p = 0; p < action.params.length; p++)
@@ -1166,8 +1176,7 @@
         {
             sort_search.splice(sort_search.indexOf(index), 1);
             type_input.splice(type_input.indexOf(string_type), 1);
-            console.log(this.sort_search);
-            console.log(this.type_input);
+            
         }
         if(this.dt_search.length !== 0)
         {
@@ -1461,24 +1470,37 @@
                             for(var i = 0; i < action.length; i++)
                             {
                                 var index_change = action[i],
-                                    dt_ajax      = dataAjax[i];
+                                    dt_ajax      = dataAjax[i],
+                                    result_data  = null;
                                 // jika dataAjax dengan index i bernilai undefined alias tidak ada
                                 if(typeof dt_ajax === 'undefined')
                                 { 
                                     console.error("Index data for 'Change Index' doesn't exist [ Index data : " + i  + " ]");
                                 }
-                                dt[index_change] = typeof dt_ajax !== 'undefined' ? dt_ajax : "";
-
-                                result.data[index_change] = dt_ajax;
+                                dt[index_change] = typeof dt_ajax !== 'undefined' ? dt_ajax.toString() : "";
+                                result_data = dt_ajax;
+                                if(this.array_info !== null)
+                                {
+                                    for(var _ai = 0; _ai < this.array_info.length; _ai++)
+                                    {
+                                        var ai = this.array_info[_ai];
+                                        if(ai.index == index_change)
+                                        {
+                                            result_data = ai.value[dt_ajax];
+                                        }
+                                    }
+                                }
+                                result.data[index_change] = result_data;
                             }
                         }
+                        //console.log(dt);
+                        new_data.push(dt);
                     }
                 }
                 else
                 {
                     console.error("Ops, your data is NULL");
                 }
-                new_data.push(dt);
                 
             }
         }
@@ -1579,8 +1601,8 @@
             }
         }
         
-        if(this.dt_all === null) this.dt_all    = new_data;
-        else                     this.dt_search = new_data;
+        if(this.dt_search.length === 0) this.dt_all    = new_data;
+        else                            this.dt_search = new_data;
         return result;
     }
 
