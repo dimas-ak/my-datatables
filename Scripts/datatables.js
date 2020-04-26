@@ -22,12 +22,12 @@
     
     $.fn.table = function(obj)
     {
+        tb.reset();
         $(this).each(function () {
             var url = obj.url,
                 number = no; // number every each selector
 
             var ini = $(this);
-
             if(obj.thead)               tb.getThead(obj.thead);
             if(obj.search)              tb.getTheadSearch(obj.search);
             if(obj.order_by)            tb.order_by(obj.order_by);
@@ -37,7 +37,9 @@
             if(obj.theadFixed)          tb.getTheadFixed(obj.theadFixed);
             if(obj.theadFixedTop)       tb.getTheadFixedTop(obj.theadFixedTop);
             if(obj.array_info)          tb.getArrayInfo(obj.array_info);
+
             if(obj.hidden_index)        tb.getHiddenIndex(obj.hidden_index);
+            else if(obj.hide_index)     tb.getHiddenIndex(obj.hide_index);
 
             ini.html(tb.setTable());
 
@@ -59,28 +61,15 @@
                 checkable   = container.find(".--checkable"),
                 th          = ini.find(".a-table thead th");
 
-            $.ajax({
-                url : url,
-                type: "POST",
-                dataType: "json",
-                beforeSend: function ()
-                {
-                    td.html("Please wait a moment...");
-                },
-                success: function (data) 
-                {
-                    //var json = JSON.parse(data);
-                    if(data.length === 0)
+            if(typeof obj.json !== 'undefined')
+            {
+                $.getJSON(obj.json, function(data) {
+                
+                    if(data.length === 0) {ini.html("Data are empty.");}
+                    else 
                     {
-                        var empty = '<tr> <td colspan="' + tb.count_thead + '"> Data are empty </td> </tr>';
                         tb.getAllData(data);
-                        tbody.html(empty); 
-                    }
-                    else
-                    {
-                        dataJSON[number] = data;
-                        tb.getAllData(dataJSON[number]);
-                        tbody.html(tb.tbody(dataJSON[number]));
+                        tbody.html(tb.tbody(data));
                         pagination.html(tb.pagination());
                         if(th_fixed.length === 0)
                         {
@@ -92,19 +81,57 @@
                             search.find("th").eq(k).find("select").append(group[k]);
                         }
                     }
-                    
-                },
-                error: function (xhr)
-                {
-                    container_table.addClass('--scrolled');
-                    td.html("Ops!!! Something went wrong, please try again...");
-                    text_error.html(xhr.responseText);
-                    conf.addClass('aktif');
-                    conf_error.addClass('aktif');
-                }
-            });
 
-            ini.on(click, 'span.--all-check-data', function () {
+                });
+            }
+            else
+            {
+                $.ajax({
+                    url : url,
+                    type: "POST",
+                    dataType: "json",
+                    beforeSend: function ()
+                    {
+                        td.html("Please wait a moment...");
+                    },
+                    success: function (data) 
+                    {
+                        //var json = JSON.parse(data);
+                        if(data.length === 0)
+                        {
+                            var empty = '<tr> <td colspan="' + tb.count_thead + '"> Data are empty </td> </tr>';
+                            tb.getAllData(data);
+                            tbody.html(empty); 
+                        }
+                        else
+                        {
+                            tb.getAllData(data);
+                            tbody.html(tb.tbody(data));
+                            pagination.html(tb.pagination());
+                            if(th_fixed.length === 0)
+                            {
+                                container_table.addClass('--scrolled');
+                            }
+                            var group = tb.group_by();
+                            for(var k in group)
+                            {
+                                search.find("th").eq(k).find("select").append(group[k]);
+                            }
+                        }
+                        
+                    },
+                    error: function (xhr)
+                    {
+                        container_table.addClass('--scrolled');
+                        td.html("Ops!!! Something went wrong, please try again...");
+                        text_error.html(xhr.responseText);
+                        conf.addClass('aktif');
+                        conf_error.addClass('aktif');
+                    }
+                });
+            }
+
+            ini.find("span.--all-check-data").off('click').on(click, function () {
                 var all_check   = ini.find('input[type="checkbox"]'),
                     main_check  = ini.find("input.--all-check-data");
                    
@@ -130,7 +157,7 @@
                 }
             });
 
-            ini.on("change", 'input.--all-check-data', function () {
+            ini.find('input.--all-check-data').off("click").on("change", function () {
                 var all_check   = ini.find('input[type="checkbox"]'),
                     main_check  = $(this);
                    
@@ -232,19 +259,30 @@
                     window.location.href = ini.attr('url');
                 }
             });
-
-            ini.on(click, '.a-table th, .t-fixed th', function() {
-                var ini     = $(this),
-                    ind     = ini.attr("set-data"),
+            
+            ini.find('.a-table th, .t-fixed th').off('click').on(click, '', function() {
+                var _ini     = $(this),
+                    ind     = _ini.attr("set-data"),
                     index   = parseInt(ind), // karena jika index === 0, maka akan di urutkan berdasarkan nomor
-                    parent  = ini.parent();
-                if(ini.attr('sort') !== 'action' && !parent.hasClass('search'))
+                    parent  = _ini.parent();
+                if(_ini.attr('sort') !== 'action' && !parent.hasClass('search'))
                 {
-                    tbody.html(tb.changeSort(index, ini.attr('sort')));
+                    if(_ini.hasClass("asc")) 
+                    {
+                        _ini.attr('sort','desc');
+                        _ini.removeClass('asc');
+                        _ini.addClass("desc");
+                    }
+                    else                           
+                    {
+                        _ini.attr('sort','asc');
+                        _ini.removeClass('desc');
+                        _ini.addClass("asc");
+                    }
+
+                    tbody.html(tb.changeSort(index, _ini.attr('class')));
                     pagination.html(tb.pagination());
                     checkable.html(tb.setChecked());
-                    if(ini.attr('sort') === 'asc') {ini.attr('sort','desc');ini.removeClass('desc');ini.addClass("asc");}
-                    else                           {ini.attr('sort','asc');ini.removeClass('asc');ini.addClass("desc");}
                     tb.resetCheck();
                 }
             });
@@ -374,7 +412,10 @@
                             {
                                 ini.text("OK");
                             }
-                            text_error.html(xhr.responseText);
+                            var msg =   "Status : " + xhr.status + "<br>" +
+                                        "Status Text : " + xhr.statusText + "<br>" +
+                                        "Response Text :" + xhr.responseText;
+                            text_error.html(msg);
                             conf.addClass('aktif');
                             conf_error.addClass('aktif');
                         }
@@ -498,6 +539,32 @@
         this.hidden_index   = new Array();
     };
 
+    table.prototype.reset = function ()
+    {
+        this.maxEntry       = 10; // default data of rows
+        this.startEntry     = 0;
+        this.dt_order_by    = [0, 'asc'];
+        this.theadSearch    = null;
+        this.action_checkable= {};
+        this.count_thead    = 1;
+        this.check_data     = {};
+        this.time_load      = new Date().getTime();
+        this.dt_thead       = null;
+        this.midle_page     = 4;
+        this.dt_theadFixedTop=0;
+        this.order_last     = false;
+        this.dt_all         = null;
+        this.type_input     = new Array();
+        this.dt_search      = new Array();
+        this.array_info     = null;
+        this.sort_search    = new Array();
+        this.changeData     = new Array();
+        this.val_search     = {};
+        this.index_page     = 1;
+        this.action         = null;
+        this.theadFixed     = false;
+        this.hidden_index   = new Array();
+    }
 
     table.prototype.setTable = function ()
     {
@@ -1119,7 +1186,7 @@
             sort_search.push(index);
             type_input.push(string_type);
         }
-
+        
         this.val_search[index] = (value.length !== 0) ? value.toString() : false;
         if(sort_search.length > 0 && sort_search.indexOf(index) !== -1)
         {
@@ -1135,9 +1202,9 @@
                         var sort= sort_search[s],
                             val = this.val_search[sort],
                             str = String(dt[sort]).match(new RegExp(val, "gi"));
-
-                        if( val !== dt[sort] && type_input[s] === 'select' && value.length !== 0) result = false;
-                        else if(str === null && type_input[s] === 'input') result = false;
+                        // if( val.toString() !== dt[sort].toString() && type_input[s] === 'select' && value.length !== 0) result = false;
+                        // else if(str === null && type_input[s] === 'input') result = false;
+                        if(typeof val !== 'boolean' && str === null) result = false;
                     }
                     
                     if(result)
@@ -1158,8 +1225,7 @@
                             val = this.val_search[sort],
                             str = String(dt[sort]).match(new RegExp(val, "gi"));
 
-                        if( val !== dt[sort] && type_input[s] === 'select') result = false;
-                        else if(str === null && type_input[s] === 'input' && value.length !== 0) result = false;
+                        if(typeof val !== 'boolean' && str === null) result = false;
                     }
                     
                     if(result)
