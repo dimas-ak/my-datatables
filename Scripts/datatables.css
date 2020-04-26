@@ -68,6 +68,8 @@
 .arjunane-table .container-a-table.--scrolled {
   width: 100%;
   overflow-x: auto;
+  max-height: 550px;
+  margin:10px 0;
 }
 .arjunane-table .container-a-table.--scrolled .a-table {
   min-width: 100%;
@@ -123,6 +125,15 @@
 .arjunane-table table tbody tr td:first-child {
   width: 50px;
   text-align: center;
+}
+.arjunane-table table thead th {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: white;
+}
+.arjunane-table table thead tr.search th {
+    top: 28px;
 }
 .arjunane-table table thead th, .arjunane-table table tbody td {
   padding: 7px 5px;
