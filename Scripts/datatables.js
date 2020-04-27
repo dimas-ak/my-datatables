@@ -348,7 +348,7 @@
                                     
                                     for(var i = 0; i < all_tr.length; i++)
                                     {
-                                        all_tr.eq(i).find("td.action a").attr("get-data", i);
+                                        all_tr.eq(i).find("td input").attr("get-data", i);
                                         all_tr.eq(i).attr('class', '--tr-data-' + i);
                                     }
                                 }
@@ -376,7 +376,7 @@
                                     {
                                         for(var i = 0; i < all_tr.length; i++)
                                         {
-                                            all_tr.eq(i).find("td.action a").attr("get-data", i);
+                                            all_tr.eq(i).find("td input").attr("get-data", i);
                                             all_tr.eq(i).attr('class', '--tr-data-' + i);
                                         }
                                     }
@@ -398,11 +398,17 @@
                                 }
                                 
                                 all_check.prop("checked", false);
+                                
+                                tb.resetCheck();
                             }
+                            
+                            conf.find(".btn-ok").removeClass("--change-data --action-column --action-row");
                             
                         },
                         error: function (xhr)
                         {
+                            
+                            conf.find(".btn-ok").removeClass("--change-data --action-column --action-row");
                             if(!ini.hasClass("btn-ok"))
                             {
                                 var text        = tb.getTextAction(indexButton);
@@ -1578,6 +1584,7 @@
                 // mengurangi data yang tidak sesuai dengan index data yang akan di hapus
                 for(var i = 0; i < data.length; i++)
                 {
+                    console.log(checks[i])
                     var dt = data[i];
                     /// jika data hasil check bernilai undefined dikarenakan checks dengan index i tidak ada
                     if(typeof checks[i] === 'undefined') new_data.push(dt);
@@ -1623,6 +1630,7 @@
                                     catch(e)
                                     {
                                         console.error("Index data for 'Change Index' doesn't exist [ Index data : " + ind + " | Result Change for index <tr> : " + (ind + 1) + " (+1) ]. Length result data : " + length);
+                                        console.error("Error : " + e);
                                     }
                                     
                                 }
