@@ -988,7 +988,7 @@
                     //action = action.act ? ' oncick="' + action.act + '"' : "",
                     text        = action.text ? action.text : action.cls.toString().toUpperCase(),
                     url         = action.url.substr(action.url.length - 1) === "/" || action.url.substr(action.url.length - 1) === "?" ? action.url : action.url + "/";
-                    //console.log();
+                    
                 if(typeof action.params !== 'undefined')
                 {
                     for(var p = 0; p < action.params.length; p++)
@@ -1584,7 +1584,6 @@
                 // mengurangi data yang tidak sesuai dengan index data yang akan di hapus
                 for(var i = 0; i < data.length; i++)
                 {
-                    console.log(checks[i])
                     var dt = data[i];
                     /// jika data hasil check bernilai undefined dikarenakan checks dengan index i tidak ada
                     if(typeof checks[i] === 'undefined') new_data.push(dt);
